@@ -31,5 +31,12 @@
   "infopaneltitle": "A játékról",
   "gamedescription": "A játék célja, hogy összeszedd a pályán szétszoródott játékokat. Minden játékot a saját dobozábaval kell összepárosítanod. Ha nincs több hely a játék véget ér. Próbálj meg minél többet összegyűjteni.",
   "contacttext": "Elérhetőségek:",
-  "lastupdatetext": "2025"
+  "lastupdatetext": "2025",
+  "globalhighscorestext": "Globális rekordok",
+  "empty": "",
+  "Pos": "Pozíció",
+  "Region": "Régió",
+  "User": "Név",
+  "Score": "Pontszám",
+  "Time": "Dátum"
 }

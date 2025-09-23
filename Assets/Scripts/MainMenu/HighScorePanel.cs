@@ -8,12 +8,19 @@ using UnityEngine.UI;
 public class HighScoreTable : MonoBehaviour
 {
     [Header("UI References")]
-    public GameObject highScoreRowPrefab; // Assign in Inspector
+    public GameObject highScoreTitlePrefab;
+    public GameObject highScoreRowPrefab;
+    //public Button globalRecordsButton;
+
+
+
     public Transform contentParent;       // Assign the ScrollView/Content GameObject
     public Slider rowFilterSlider;        // Slider (values 3–7)
     public TextMeshProUGUI filterLabel;   // Label that shows "X Rows"
     public Image rowPreviewImage;         // Preview image
     public Sprite[] rowPreviewSprites;    // Assign 5 sprites (index 0 = 3 rows, index 4 = 7 rows)
+
+    public GlobalHighScoresPanel globalPanel;
 
     // Maps height -> width
     private Dictionary<int, int> heightToWidth = new Dictionary<int, int>
@@ -69,12 +76,13 @@ public class HighScoreTable : MonoBehaviour
             Destroy(child.gameObject);
 
         // Header row
-        GameObject headerRow = Instantiate(highScoreRowPrefab, contentParent);
+        GameObject headerRow = Instantiate(highScoreTitlePrefab, contentParent);
         TextMeshProUGUI[] headerTexts = headerRow.GetComponentsInChildren<TextMeshProUGUI>();
         if (headerTexts.Length >= 2)
         {
             headerTexts[0].text = LocalizationManager.Instance.GetLocalizedValue("cardslabel");  // "Kártyák száma" / "Cards"
             headerTexts[1].text = LocalizationManager.Instance.GetLocalizedValue("score");       // "Pontszám" / "Score"
+            headerTexts[2].text = LocalizationManager.Instance.GetLocalizedValue("globalhighscorestext");
         }
 
         // Data rows
@@ -90,6 +98,43 @@ public class HighScoreTable : MonoBehaviour
                 rowTexts[0].text = $"{cards}";          // or $"{cards} Kártya"
                 rowTexts[1].text = score.ToString();
             }
+
+            Button rowButton = dataRow.GetComponentInChildren<Button>();
+            if (rowButton != null)
+            {
+                // Remove existing listeners first
+                rowButton.onClick.RemoveAllListeners();
+
+                // Capture variables for the closure
+                int capturedRows = rows;
+                int capturedCards = cards;
+
+                // Assign the click behavior
+                rowButton.onClick.AddListener(async () =>
+                {
+                    string gameCode = $"Gametype_{capturedRows}rows{capturedCards}cards";
+                    Debug.Log($"Loading global highscores for {gameCode}");
+
+                    if (globalPanel != null)
+                    {
+                        globalPanel.gameObject.SetActive(true); // activate panel GameObject
+                        await globalPanel.ShowScores(gameCode);
+                    }
+                    else
+                    {
+                        Debug.LogError("GlobalHighScoresPanel reference not assigned!");
+                    }
+                });
+            }
+        }
+
+        GameObject footerRow = Instantiate(highScoreTitlePrefab, contentParent);
+        TextMeshProUGUI[] footerTexts = footerRow.GetComponentsInChildren<TextMeshProUGUI>();
+        if (footerTexts.Length >= 2)
+        {
+            footerTexts[0].text = LocalizationManager.Instance.GetLocalizedValue("empty");  // "Kártyák száma" / "Cards"
+            footerTexts[1].text = LocalizationManager.Instance.GetLocalizedValue("empty");       // "Pontszám" / "Score"
+            footerTexts[2].text = LocalizationManager.Instance.GetLocalizedValue("empty");
         }
     }
 

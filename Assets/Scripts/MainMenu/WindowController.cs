@@ -11,6 +11,7 @@ public class WindowController : MonoBehaviour
     [SerializeField] private GameObject highScorePanel;
     [SerializeField] private GameObject infoPanel;
     [SerializeField] private GameObject newGamePanel;
+    [SerializeField] private GameObject profilePanel;
 
     public Slider musicVolumeSlider;
     public Toggle musicVolumeToggle;
@@ -68,8 +69,13 @@ public class WindowController : MonoBehaviour
     {
         settingsPanel.SetActive(false);
         newGamePanel.SetActive(false);
-        highScorePanel.SetActive(true);
+        highScorePanel.SetActive(false);
         infoPanel.SetActive(true);
+    }
+
+    public void OpenProfilePanel()
+    {
+        profilePanel.SetActive(true);
     }
 
     public void OpenNewGamePanel()
@@ -96,6 +102,7 @@ public class WindowController : MonoBehaviour
         highScorePanel.SetActive(false);
         settingsPanel.SetActive(false);
         newGamePanel.SetActive(false);
+        profilePanel.SetActive(false);
     }
 
     public void OpenContactWebsite()

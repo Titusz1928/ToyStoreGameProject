@@ -38,5 +38,14 @@
   "Region": "Region",
   "User": "Username",
   "Score": "Score",
-  "Time": "Date"
+  "Time": "Date",
+  "profile": "Profile",
+  "R_hungary": "Hungary",
+  "R_europe": "Europe",
+  "R_asia": "Asia",
+  "R_africa": "Africa",
+  "R_australia": "Australia",
+  "R_namerica": "N. America",
+  "R_samerica": "S. America",
+  "username_too_long": "Maximum 12 characters"
 }

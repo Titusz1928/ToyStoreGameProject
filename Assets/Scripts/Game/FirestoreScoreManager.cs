@@ -13,8 +13,34 @@ public class FirestoreScoreManager : MonoBehaviour
         else Destroy(gameObject);
     }
 
+    /// <summary>
+    /// Fetch the max number of leaderboard rows from Firestore.
+    /// Returns defaultValue if not found or error.
+    /// </summary>
+    private async Task<int> GetMaxRowsFromFirestore(int defaultValue = 10)
+    {
+        try
+        {
+            var settingsDoc = await FirebaseInit.Db
+                .Collection("gamesettings")
+                .Document("leaderboards")
+                .GetSnapshotAsync();
 
-    //OLD VERSION
+            if (settingsDoc.Exists && settingsDoc.ContainsField("tablerows"))
+            {
+                return settingsDoc.GetValue<int>("tablerows");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"Could not fetch tablerows, using default {defaultValue}. Error: {e}");
+        }
+
+        return defaultValue;
+    }
+
+
+    //SIMPLY ADDS SCORE
     /*public async Task SaveScore(int score, string gameCode)
     {
         if (FirebaseInit.Db == null || FirebaseInit.User == null)
@@ -44,78 +70,80 @@ public class FirestoreScoreManager : MonoBehaviour
     }*/
 
     //1 PLAYER / GAMECODE
-/*    public async Task SaveScore(int score, string gameCode)
-    {
-        if (FirebaseInit.Db == null || FirebaseInit.User == null)
+    /*    public async Task SaveScore(int score, string gameCode)
         {
-            Debug.LogError("Firebase not initialized yet!");
-            return;
-        }
-
-        try
-        {
-            var collection = FirebaseInit.Db.Collection(gameCode);
-
-            // Get total number of scores
-            var allScoresSnapshot = await collection.GetSnapshotAsync();
-            int scoreCount = allScoresSnapshot.Count;
-
-            // Get the lowest score (if any exist)
-            var lowestSnapshot = await collection.OrderBy("score").Limit(1).GetSnapshotAsync();
-
-            int lowestScore = int.MinValue;
-            DocumentSnapshot lowestDoc = null;
-
-            if (lowestSnapshot.Count > 0)
+            if (FirebaseInit.Db == null || FirebaseInit.User == null)
             {
-                lowestDoc = lowestSnapshot.Documents.FirstOrDefault();
-                lowestScore = lowestDoc.GetValue<int>("score");
-            }
-
-            // If we already have 10 or more scores and this score is not better than the lowest → do nothing
-            if (scoreCount >= 10 && lowestDoc != null && score <= lowestScore)
-            {
-                Debug.Log($"Score {score} is not higher than the lowest score {lowestScore} in {gameCode}");
+                Debug.LogError("Firebase not initialized yet!");
                 return;
             }
 
-            // Check if this user already has a score
-            var userQuery = await collection.WhereEqualTo("userId", FirebaseInit.User.UserId).GetSnapshotAsync();
-
-            DocumentSnapshot userDoc = null;
-            if (userQuery.Count > 0)
+            try
             {
-                userDoc = userQuery.Documents.FirstOrDefault();
-                await userDoc.Reference.DeleteAsync();
-                Debug.Log($"Deleted old score for {FirebaseInit.User.UserId}");
+                int maxRows = await GetMaxRowsFromFirestore(10);
+
+                var collection = FirebaseInit.Db.Collection(gameCode);
+
+                // Get total number of scores
+                var allScoresSnapshot = await collection.GetSnapshotAsync();
+                int scoreCount = allScoresSnapshot.Count;
+
+                // Get the lowest score (if any exist)
+                var lowestSnapshot = await collection.OrderBy("score").Limit(1).GetSnapshotAsync();
+
+                int lowestScore = int.MinValue;
+                DocumentSnapshot lowestDoc = null;
+
+                if (lowestSnapshot.Count > 0)
+                {
+                    lowestDoc = lowestSnapshot.Documents.FirstOrDefault();
+                    lowestScore = lowestDoc.GetValue<int>("score");
+                }
+
+                // If we already have 10 or more scores and this score is not better than the lowest → do nothing
+                if (scoreCount >= 10 && lowestDoc != null && score <= lowestScore)
+                {
+                    Debug.Log($"Score {score} is not higher than the lowest score {lowestScore} in {gameCode}");
+                    return;
+                }
+
+                // Check if this user already has a score
+                var userQuery = await collection.WhereEqualTo("userId", FirebaseInit.User.UserId).GetSnapshotAsync();
+
+                DocumentSnapshot userDoc = null;
+                if (userQuery.Count > 0)
+                {
+                    userDoc = userQuery.Documents.FirstOrDefault();
+                    await userDoc.Reference.DeleteAsync();
+                    Debug.Log($"Deleted old score for {FirebaseInit.User.UserId}");
+                }
+
+                // If user didn’t have a score, and collection is full (>= 10), delete the lowest one
+                if (userDoc == null && scoreCount >= 10 && lowestDoc != null)
+                {
+                    await lowestDoc.Reference.DeleteAsync();
+                    Debug.Log($"Deleted lowest score {lowestScore} from {lowestDoc.Id}");
+                }
+
+                // Add the new score
+                var scoreData = new
+                {
+                    userId = FirebaseInit.User.UserId,
+                    username = PlayerPrefs.GetString("Username", "Guest"),
+                    region = PlayerPrefs.GetString("SelectedRegionCode", "R_hungary"),
+                    score = score,
+                    timestamp = FieldValue.ServerTimestamp
+                };
+
+                await collection.AddAsync(scoreData);
+
+                Debug.Log($"New score {score} saved for user {FirebaseInit.User.UserId} in {gameCode}");
             }
-
-            // If user didn’t have a score, and collection is full (>= 10), delete the lowest one
-            if (userDoc == null && scoreCount >= 10 && lowestDoc != null)
+            catch (System.Exception e)
             {
-                await lowestDoc.Reference.DeleteAsync();
-                Debug.Log($"Deleted lowest score {lowestScore} from {lowestDoc.Id}");
+                Debug.LogError("Error saving score: " + e);
             }
-
-            // Add the new score
-            var scoreData = new
-            {
-                userId = FirebaseInit.User.UserId,
-                score = score,
-                username = "Titusz",
-                region = "Hungary",
-                timestamp = FieldValue.ServerTimestamp
-            };
-
-            await collection.AddAsync(scoreData);
-
-            Debug.Log($"New score {score} saved for user {FirebaseInit.User.UserId} in {gameCode}");
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Error saving score: " + e);
-        }
-    }*/
+        }*/
 
     //MULTIPLE PLAYER/GAMECODE
     //public async Task SaveScoreAllowDuplicates(int score, string gameCode)
@@ -129,6 +157,10 @@ public class FirestoreScoreManager : MonoBehaviour
 
         try
         {
+
+            int maxRows = await GetMaxRowsFromFirestore(10);
+
+
             var collection = FirebaseInit.Db.Collection(gameCode);
 
             // Get all scores to know how many exist
@@ -165,8 +197,8 @@ public class FirestoreScoreManager : MonoBehaviour
             var scoreData = new
             {
                 userId = FirebaseInit.User.UserId,
-                username = "Titusz",   // default username
-                region = "Hungary",     // default region
+                username = PlayerPrefs.GetString("Username", "Guest"),
+                region = PlayerPrefs.GetString("SelectedRegionCode", "R_hungary"),
                 score = score,
                 timestamp = FieldValue.ServerTimestamp
             };

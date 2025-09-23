@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class GlobalHighScoresPanel : MonoBehaviour
 {
@@ -69,7 +70,7 @@ public class GlobalHighScoresPanel : MonoBehaviour
 
                 string username = doc.GetValue<string>("username");
                 string region = doc.GetValue<string>("region");
-                string timeStr = ts.ToDateTime().ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+                string timeStr = ts.ToDateTime().ToLocalTime().ToString("yyyy-MM-dd");
 
                 // Debug log
                 Debug.Log($"{rank}. {username} ({region}) - {score} - {timeStr}");
@@ -80,10 +81,17 @@ public class GlobalHighScoresPanel : MonoBehaviour
                 if (rowTexts.Length >= 5)
                 {
                     rowTexts[0].text = rank.ToString();
-                    rowTexts[1].text = region;
+                    rowTexts[1].text = LocalizationManager.Instance.GetLocalizedValue(region);
                     rowTexts[2].text = username;
                     rowTexts[3].text = score.ToString();
                     rowTexts[4].text = timeStr;
+                }
+
+                if (userId == FirebaseInit.User.UserId)
+                {
+                    var bgImage = row.GetComponent<Image>();
+                    if (bgImage != null)
+                        bgImage.color = new Color(0.7f, 1f, 0.7f, 1f); // light green RGBA
                 }
 
                 rank++;

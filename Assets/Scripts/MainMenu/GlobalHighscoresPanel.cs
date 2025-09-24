@@ -14,8 +14,14 @@ public class GlobalHighScoresPanel : MonoBehaviour
     public Transform contentParent;         // ScrollView Content (where rows go)
     public GameObject headerPrefab;         // prefab for column names
     public GameObject rowPrefab;            // prefab for score rows
+    public GameObject imageRowPrefan;
 
     public GameObject loadingText;
+
+    [Header("Special Rank Sprites")]
+    public Sprite firstPlaceSprite;
+    public Sprite secondPlaceSprite;
+    public Sprite thirdPlaceSprite;
 
     private void Awake()
     {
@@ -112,16 +118,47 @@ public class GlobalHighScoresPanel : MonoBehaviour
                 // Debug log
                 Debug.Log($"{rank}. {username} ({region}) - {score} - {timeStr}");
 
-                // Spawn row
-                GameObject row = Instantiate(rowPrefab, contentParent);
-                TextMeshProUGUI[] rowTexts = row.GetComponentsInChildren<TextMeshProUGUI>();
-                if (rowTexts.Length >= 5)
+                GameObject row;
+
+                if (rank <= 3)
                 {
-                    rowTexts[0].text = rank.ToString();
-                    rowTexts[1].text = LocalizationManager.Instance.GetLocalizedValue(region);
-                    rowTexts[2].text = username;
-                    rowTexts[3].text = score.ToString();
-                    rowTexts[4].text = timeStr;
+                    row = Instantiate(imageRowPrefan, contentParent);
+
+                    // Assign medal image
+                    Image medalImage = row.transform.GetChild(0).GetComponentInChildren<Image>();
+                    if (medalImage != null)
+                    {
+                        switch (rank)
+                        {
+                            case 1: medalImage.sprite = firstPlaceSprite; break;
+                            case 2: medalImage.sprite = secondPlaceSprite; break;
+                            case 3: medalImage.sprite = thirdPlaceSprite; break;
+                        }
+                    }
+
+                    // Fill texts (the other 4 children)
+                    TextMeshProUGUI[] rowTexts = row.GetComponentsInChildren<TextMeshProUGUI>();
+                    if (rowTexts.Length >= 4)
+                    {
+                        rowTexts[0].text = LocalizationManager.Instance.GetLocalizedValue(region);
+                        rowTexts[1].text = username;
+                        rowTexts[2].text = score.ToString();
+                        rowTexts[3].text = timeStr;
+                    }
+                }
+                else
+                {
+                    // Use normal rowPrefab for others
+                    row = Instantiate(rowPrefab, contentParent);
+                    TextMeshProUGUI[] rowTexts = row.GetComponentsInChildren<TextMeshProUGUI>();
+                    if (rowTexts.Length >= 5)
+                    {
+                        rowTexts[0].text = rank.ToString();
+                        rowTexts[1].text = LocalizationManager.Instance.GetLocalizedValue(region);
+                        rowTexts[2].text = username;
+                        rowTexts[3].text = score.ToString();
+                        rowTexts[4].text = timeStr;
+                    }
                 }
 
                 if (userId == FirebaseInit.User.UserId)

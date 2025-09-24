@@ -50,6 +50,7 @@
   "R_namerica": "É. Amerika",
   "R_samerica": "D. Amerika",
   "username_too_long": "Maximum 12 karakter",
+  "username_inappropriate": "Sértő felhasználónév",
   "no_any_rows": "Nincs egy rekord sem"
 
 }

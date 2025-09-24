@@ -39,7 +39,7 @@ android {
 
     defaultConfig {
         minSdkVersion **MINSDKVERSION**
-        targetSdkVersion 34
+        targetSdkVersion **TARGETSDKVERSION**
         ndk {
             abiFilters **ABIFILTERS**
         }

@@ -50,5 +50,6 @@
   "R_namerica": "N. America",
   "R_samerica": "S. America",
   "username_too_long": "Maximum 12 characters",
+  "username_inappropriate": "Innappropriate username",
   "no_any_rows": "No any records"
 }

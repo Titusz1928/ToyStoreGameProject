@@ -134,17 +134,15 @@ public class ProfilePanel : MonoBehaviour
 
         if (input.Length > 12)
         {
-            Debug.Log("Username too long!");
-            if (warningText != null)
-            {
-                warningText.text = LocalizationManager.Instance.GetLocalizedValue("username_too_long");
-                StartCoroutine(ClearWarningAfterDelay(2f));
-            }
+            ShowWarning("username_too_long");
+            usernameInput.text = string.Empty;
+            return;
+        }
 
-            // Clear the input field
-            if (usernameInput != null)
-                usernameInput.text = string.Empty;
-
+        if (ProfanityManager.ContainsProfanity(input, "eng"))
+        {
+            ShowWarning("username_inappropriate");
+            usernameInput.text = string.Empty;
             return;
         }
 
@@ -162,6 +160,15 @@ public class ProfilePanel : MonoBehaviour
             var placeholderText = usernameInput.placeholder as TextMeshProUGUI;
             if (placeholderText != null)
                 placeholderText.text = input;
+        }
+    }
+
+    private void ShowWarning(string localizationKey)
+    {
+        if (warningText != null)
+        {
+            warningText.text = LocalizationManager.Instance.GetLocalizedValue(localizationKey);
+            StartCoroutine(ClearWarningAfterDelay(2f));
         }
     }
 

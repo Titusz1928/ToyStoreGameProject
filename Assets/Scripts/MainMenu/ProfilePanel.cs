@@ -104,7 +104,13 @@ public class ProfilePanel : MonoBehaviour
     private void OnUsernameEntered(string input)
     {
         if (string.IsNullOrWhiteSpace(input))
+        {
+            // Clear the input field
+            if (usernameInput != null)
+                usernameInput.text = string.Empty;
+
             return;
+        }
 
         if (input.Length > 12)
         {
@@ -114,6 +120,11 @@ public class ProfilePanel : MonoBehaviour
                 warningText.text = LocalizationManager.Instance.GetLocalizedValue("username_too_long");
                 StartCoroutine(ClearWarningAfterDelay(2f));
             }
+
+            // Clear the input field
+            if (usernameInput != null)
+                usernameInput.text = string.Empty;
+
             return;
         }
 
@@ -124,9 +135,16 @@ public class ProfilePanel : MonoBehaviour
 
         if (usernameInput != null)
         {
-            usernameInput.placeholder.GetComponent<TextMeshProUGUI>().text = input;
+            // Clear the input field
+            usernameInput.text = string.Empty;
+
+            // Update placeholder immediately
+            var placeholderText = usernameInput.placeholder as TextMeshProUGUI;
+            if (placeholderText != null)
+                placeholderText.text = input;
         }
     }
+
 
     private IEnumerator ClearWarningAfterDelay(float delay)
     {

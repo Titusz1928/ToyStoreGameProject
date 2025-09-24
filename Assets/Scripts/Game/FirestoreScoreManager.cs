@@ -2,10 +2,13 @@
 using UnityEngine;
 using System.Threading.Tasks;
 using System.Linq;
+using UnityEngine.UI;
 
 public class FirestoreScoreManager : MonoBehaviour
 {
     public static FirestoreScoreManager Instance;
+
+    public GameObject globalRecordsButton;
 
     private void Awake()
     {
@@ -135,6 +138,8 @@ public class FirestoreScoreManager : MonoBehaviour
                     timestamp = FieldValue.ServerTimestamp
                 };
 
+                //globalRecordsButton.SetActive(true);
+
                 await collection.AddAsync(scoreData);
 
                 Debug.Log($"New score {score} saved for user {FirebaseInit.User.UserId} in {gameCode}");
@@ -202,6 +207,8 @@ public class FirestoreScoreManager : MonoBehaviour
                 score = score,
                 timestamp = FieldValue.ServerTimestamp
             };
+
+            //globalRecordsButton.SetActive(true);
 
             await collection.AddAsync(scoreData);
 

@@ -5,6 +5,7 @@ public class GameController : MonoBehaviour
 {
     [SerializeField] private GameObject gameMenuPanel;
     [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private GameObject globalRecordsPanel;
     [SerializeField] private GameObject mainPanel;
     [SerializeField] private SceneSwitcher SceneManager;
     [SerializeField] private GridManager gridManager;
@@ -35,6 +36,16 @@ public class GameController : MonoBehaviour
     {
         gameMenuPanel.SetActive(false);
         settingsPanel.SetActive(true);
+    }
+
+    public void OpenGlobalRecordsPanel()
+    {
+        globalRecordsPanel.SetActive(true);
+    }
+
+    public void CloseGlobalRecordsPanel()
+    {
+        globalRecordsPanel.SetActive(false);
     }
 
 

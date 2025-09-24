@@ -24,8 +24,25 @@ public class GlobalHighScoresPanel : MonoBehaviour
             contentRoot = this.gameObject; // fallback
     }
 
+    public void OnShowScoresButtonClicked()
+    {
+        if (GlobalHighScoresPanel.Instance == null)
+            GlobalHighScoresPanel.Instance = FindObjectOfType<GlobalHighScoresPanel>();
+
+        if (GlobalHighScoresPanel.Instance != null)
+            _ = GlobalHighScoresPanel.Instance.ShowScores(null);
+        else
+            Debug.LogError("GlobalHighScoresPanel not found in the scene!");
+    }
+
     public async Task ShowScores(string gameCode)
     {
+        if(string.IsNullOrWhiteSpace(gameCode))
+{
+            gameCode = $"Gametype_{GameSettings.GridHeight}rows{GameSettings.MaxAllowed}cards";
+        }
+
+
         if (FirebaseInit.Db == null)
         {
             Debug.LogError("Firestore not initialized yet!");

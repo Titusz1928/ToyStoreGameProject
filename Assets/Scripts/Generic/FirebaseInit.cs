@@ -77,4 +77,25 @@ public class FirebaseInit : MonoBehaviour
     Application.Quit();
 #endif
     }
+
+    public void ClearHighScores()
+    {
+        for (int gridHeight = 3; gridHeight <= 7; gridHeight++)
+        {
+            for (int maxCards = 3; maxCards <= 8; maxCards++)
+            {
+                string gameCode = $"Gametype_{gridHeight}rows{maxCards}cards";
+
+                if (PlayerPrefs.HasKey(gameCode))
+                {
+                    PlayerPrefs.DeleteKey(gameCode);
+                    Debug.Log($"Deleted highscore for {gameCode}");
+                }
+            }
+        }
+
+        // Apply changes immediately
+        PlayerPrefs.Save();
+        Debug.Log("All local high scores cleared.");
+    }
 }

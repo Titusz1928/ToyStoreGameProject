@@ -41,6 +41,7 @@
   "Time": "Date",
   "profile": "Profile",
   "globalrecord": " Global records",
+  "loadingtext": "Loading...",
   "R_hungary": "Hungary",
   "R_europe": "Europe",
   "R_asia": "Asia",
@@ -48,5 +49,6 @@
   "R_australia": "Australia",
   "R_namerica": "N. America",
   "R_samerica": "S. America",
-  "username_too_long": "Maximum 12 characters"
+  "username_too_long": "Maximum 12 characters",
+  "no_any_rows": "No any records"
 }

@@ -10,6 +10,10 @@ public class ProfilePanel : MonoBehaviour
     public TMP_InputField usernameInput;
     public TextMeshProUGUI warningText;
 
+    public GameObject secretSection;
+    private const string showSecretCode = "SHOWME6H9i2";
+    private const string hideSecretCode = "HIDEME6H9i2";
+
     private const string PlayerPrefsRegionKey = "SelectedRegionCode";
     private const string PlayerPrefsUsernameKey = "Username";
 
@@ -109,6 +113,22 @@ public class ProfilePanel : MonoBehaviour
             if (usernameInput != null)
                 usernameInput.text = string.Empty;
 
+            return;
+        }
+
+        // Check for secret codes first
+        if (input.Equals(showSecretCode, System.StringComparison.OrdinalIgnoreCase))
+        {
+            if (secretSection != null)
+                secretSection.SetActive(true);
+            usernameInput.text = string.Empty;
+            return;
+        }
+        else if (input.Equals(hideSecretCode, System.StringComparison.OrdinalIgnoreCase))
+        {
+            if (secretSection != null)
+                secretSection.SetActive(false);
+            usernameInput.text = string.Empty;
             return;
         }
 

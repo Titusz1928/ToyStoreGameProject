@@ -15,6 +15,8 @@ public class GlobalHighScoresPanel : MonoBehaviour
     public GameObject headerPrefab;         // prefab for column names
     public GameObject rowPrefab;            // prefab for score rows
 
+    public GameObject loadingText;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -78,6 +80,24 @@ public class GlobalHighScoresPanel : MonoBehaviour
 
             Debug.Log($"=== Global High Scores for {gameCode} ===");
 
+            if (snapshot.Documents.Count() == 0)
+            {
+                // No rows: show message
+                if (loadingText != null)
+                {
+                    loadingText.SetActive(true);
+                    var textComponent = loadingText.GetComponent<TextMeshProUGUI>();
+                    if (textComponent != null)
+                        textComponent.text = LocalizationManager.Instance.GetLocalizedValue("no_any_rows");
+                }
+
+                return;
+            }
+
+            // There are rows, hide loading text
+            if (loadingText != null)
+                loadingText.SetActive(false);
+
             int rank = 1;
             foreach (var doc in snapshot.Documents)
             {
@@ -118,6 +138,7 @@ public class GlobalHighScoresPanel : MonoBehaviour
         {
             Debug.LogError($"Error loading scores for {gameCode}: {e}");
         }
+
     }
 
     public void HidePanel()

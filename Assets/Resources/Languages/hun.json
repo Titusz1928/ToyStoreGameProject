@@ -41,6 +41,7 @@
   "Time": "Dátum",
   "profile": "Profil",
   "globalrecord": " Globális rekordok",
+  "loadingtext": "Betöltés...",
   "R_hungary": "Magyarország",
   "R_europe": "Európa",
   "R_asia": "Ázsia",
@@ -48,6 +49,7 @@
   "R_australia": "Ausztrália",
   "R_namerica": "É. Amerika",
   "R_samerica": "D. Amerika",
-  "username_too_long": "Maximum 12 karakter"
+  "username_too_long": "Maximum 12 karakter",
+  "no_any_rows": "Nincs egy rekord sem"
 
 }

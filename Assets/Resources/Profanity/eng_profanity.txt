@@ -830,3 +830,6 @@ zippo-cat
 zippocat
 zoophile
 zoophilia
+kill
+exterminate
+genocide

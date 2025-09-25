@@ -1,9 +1,11 @@
 using Firebase.Firestore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
+using static UnityEngine.Rendering.DebugUI.Table;
 
 public class GlobalHighScoresPanel : MonoBehaviour
 {
@@ -22,6 +24,17 @@ public class GlobalHighScoresPanel : MonoBehaviour
     public Sprite firstPlaceSprite;
     public Sprite secondPlaceSprite;
     public Sprite thirdPlaceSprite;
+
+    [Header("Background")]
+    public Image backgroundImage;
+
+    private readonly List<GameObject> overallRows = new();
+    private readonly List<GameObject> weeklyRows = new();
+
+    public class ScoreRow : MonoBehaviour
+    {
+        public bool IsWeekly;
+    }
 
     private void Awake()
     {
@@ -43,66 +56,35 @@ public class GlobalHighScoresPanel : MonoBehaviour
             Debug.LogError("GlobalHighScoresPanel not found in the scene!");
     }
 
-    public async Task ShowScores(string gameCode)
+
+    private async Task FillUpLeaderboard(bool isWeekly, string collectionName)
     {
-        if(string.IsNullOrWhiteSpace(gameCode))
-{
-            gameCode = $"Gametype_{GameSettings.GridHeight}rows{GameSettings.MaxAllowed}cards";
-        }
+        Transform parent = contentParent; // single ScrollRect content
 
-
-        if (FirebaseInit.Db == null)
-        {
-            Debug.LogError("Firestore not initialized yet!");
-            return;
-        }
-
-        // Enable panel
-        contentRoot.SetActive(true);
-
-        // Clear old content
-        foreach (Transform child in contentParent)
-            Destroy(child.gameObject);
-
-        // Add header row
-        GameObject headerRow = Instantiate(headerPrefab, contentParent);
-        TextMeshProUGUI[] headerTexts = headerRow.GetComponentsInChildren<TextMeshProUGUI>();
-        if (headerTexts.Length >= 5)
-        {
-            headerTexts[0].text = LocalizationManager.Instance.GetLocalizedValue("Pos");
-            headerTexts[1].text = LocalizationManager.Instance.GetLocalizedValue("Region");
-            headerTexts[2].text = LocalizationManager.Instance.GetLocalizedValue("User");
-            headerTexts[3].text = LocalizationManager.Instance.GetLocalizedValue("Score");
-            headerTexts[4].text = LocalizationManager.Instance.GetLocalizedValue("Time");
-        }
+        // Wait for end of frame so LayoutGroups/ScrollRects can update safely
+        await Task.Yield();
 
         try
         {
-            var query = FirebaseInit.Db.Collection(gameCode)
+            var query = FirebaseInit.Db.Collection(collectionName)
                 .OrderByDescending("score")
                 .Limit(10);
 
             var snapshot = await query.GetSnapshotAsync();
 
-            Debug.Log($"=== Global High Scores for {gameCode} ===");
+            // Hide loadingText initially
+            if (loadingText != null)
+                loadingText.SetActive(false);
 
-            if (snapshot.Documents.Count() == 0)
+            if (snapshot.Count == 0)
             {
-                // No rows: show message
                 if (loadingText != null)
                 {
                     loadingText.SetActive(true);
-                    var textComponent = loadingText.GetComponent<TextMeshProUGUI>();
-                    if (textComponent != null)
-                        textComponent.text = LocalizationManager.Instance.GetLocalizedValue("no_any_rows");
+                    loadingText.GetComponent<TextMeshProUGUI>().text = LocalizationManager.Instance.GetLocalizedValue("no_any_rows");
                 }
-
                 return;
             }
-
-            // There are rows, hide loading text
-            if (loadingText != null)
-                loadingText.SetActive(false);
 
             int rank = 1;
             foreach (var doc in snapshot.Documents)
@@ -110,21 +92,18 @@ public class GlobalHighScoresPanel : MonoBehaviour
                 string userId = doc.GetValue<string>("userId");
                 int score = doc.GetValue<int>("score");
                 Timestamp ts = doc.GetValue<Timestamp>("timestamp");
-
                 string username = doc.GetValue<string>("username");
                 string region = doc.GetValue<string>("region");
                 string timeStr = ts.ToDateTime().ToLocalTime().ToString("yyyy-MM-dd");
 
-                // Debug log
-                Debug.Log($"{rank}. {username} ({region}) - {score} - {timeStr}");
-
                 GameObject row;
 
+                // Choose prefab for top 3
                 if (rank <= 3)
                 {
-                    row = Instantiate(imageRowPrefan, contentParent);
+                    row = Instantiate(imageRowPrefan, parent);
 
-                    // Assign medal image
+                    // Medal image
                     Image medalImage = row.transform.GetChild(0).GetComponentInChildren<Image>();
                     if (medalImage != null)
                     {
@@ -136,7 +115,7 @@ public class GlobalHighScoresPanel : MonoBehaviour
                         }
                     }
 
-                    // Fill texts (the other 4 children)
+                    // Fill texts
                     TextMeshProUGUI[] rowTexts = row.GetComponentsInChildren<TextMeshProUGUI>();
                     if (rowTexts.Length >= 4)
                     {
@@ -148,8 +127,8 @@ public class GlobalHighScoresPanel : MonoBehaviour
                 }
                 else
                 {
-                    // Use normal rowPrefab for others
-                    row = Instantiate(rowPrefab, contentParent);
+                    row = Instantiate(rowPrefab, parent);
+
                     TextMeshProUGUI[] rowTexts = row.GetComponentsInChildren<TextMeshProUGUI>();
                     if (rowTexts.Length >= 5)
                     {
@@ -161,21 +140,135 @@ public class GlobalHighScoresPanel : MonoBehaviour
                     }
                 }
 
+                // Highlight current player
                 if (userId == FirebaseInit.User.UserId)
                 {
                     var bgImage = row.GetComponent<Image>();
                     if (bgImage != null)
-                        bgImage.color = new Color(0.7f, 1f, 0.7f, 1f); // light green RGBA
+                        bgImage.color = new Color(0.7f, 1f, 0.7f, 1f);
                 }
+
+                // Mark row as weekly or overall
+                var scoreRow = row.AddComponent<ScoreRow>();
+                scoreRow.IsWeekly = isWeekly;
+
+                if (isWeekly)
+                    weeklyRows.Add(row);
+                else
+                    overallRows.Add(row);
 
                 rank++;
             }
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"Error loading scores for {gameCode}: {e}");
+            Debug.LogError($"Error loading scores for {collectionName}: {e}");
+        }
+    }
+
+
+
+
+
+    public async Task ShowScores(string gameCode)
+    {
+        if (string.IsNullOrWhiteSpace(gameCode))
+        {
+            gameCode = $"Gametype_{GameSettings.GridHeight}rows{GameSettings.MaxAllowed}cards";
         }
 
+        if (FirebaseInit.Db == null)
+        {
+            Debug.LogError("Firestore not initialized yet!");
+            return;
+        }
+
+        // Enable panel
+        contentRoot.SetActive(true);
+
+        // Destroy all rows except header
+        for (int i = contentParent.childCount - 1; i >= 1; i--)
+        {
+            Destroy(contentParent.GetChild(i).gameObject);
+        }
+
+        // Clear the cached lists
+        overallRows.Clear();
+        weeklyRows.Clear();
+
+        // Load overall scores
+        await FillUpLeaderboard(false, gameCode);
+
+        // Load weekly scores
+        await FillUpLeaderboard(true, "W" + gameCode);
+
+        // Show overall by default
+        ShowOverallLeaderboard();
+    }
+
+    private void checkRows(bool hasRows)
+    {
+        // Show "no rows" message only if no overall rows exist
+        if (loadingText != null)
+        {
+            loadingText.SetActive(!hasRows);
+            if (!hasRows)
+                loadingText.GetComponent<TextMeshProUGUI>().text = LocalizationManager.Instance.GetLocalizedValue("no_any_rows");
+        }
+    }
+
+
+    public void ShowOverallLeaderboard()
+    {
+        bool hasRows = false;
+
+        foreach (var row in overallRows)
+        {
+            if (row != null)
+            {
+                row.SetActive(true);
+                hasRows = true;
+            }
+        }
+
+        foreach (var row in weeklyRows)
+            if (row != null)
+                row.SetActive(false);
+
+        if (contentParent.childCount > 0)
+            contentParent.GetChild(0).gameObject.SetActive(true); // header
+
+        if (backgroundImage != null)
+            backgroundImage.color = new Color(0.7f, 1f, 0.7f, 1f);
+
+        checkRows(hasRows);
+    }
+
+
+    public void ShowWeeklyLeaderboard()
+    {
+        bool hasRows = false;
+
+        foreach (var row in overallRows)
+            if (row != null)
+                row.SetActive(false);
+
+        foreach (var row in weeklyRows)
+        {
+            if (row != null)
+            {
+                row.SetActive(true);
+                hasRows = true;
+            }
+        }
+
+        if (contentParent.childCount > 0)
+            contentParent.GetChild(0).gameObject.SetActive(true); // header
+
+        if (backgroundImage != null)
+            backgroundImage.color = new Color(0.7f, 0.9f, 1f, 1f);
+
+        checkRows(hasRows);
     }
 
     public void HidePanel()

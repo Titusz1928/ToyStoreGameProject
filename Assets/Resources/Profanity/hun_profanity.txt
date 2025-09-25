@@ -7,6 +7,8 @@ barmokat
 barmot
 barom
 baszik
+baszodj
+baszódj
 bazmeg
 buksza
 bukszák
@@ -94,3 +96,5 @@ szarik
 szarok
 szarokat
 szart
+halál
+utál

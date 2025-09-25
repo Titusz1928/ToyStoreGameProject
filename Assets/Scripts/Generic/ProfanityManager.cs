@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+//using System.Text.RegularExpressions;
 
 public static class ProfanityManager
 {
@@ -51,4 +52,25 @@ public static class ProfanityManager
 
         return false;
     }
+
+
+    /*public static bool ContainsProfanity(string input, string languageCode = "eng")
+    {
+        LoadList(languageCode);
+
+        if (bannedWords == null || bannedWords.Count == 0)
+            return false;
+
+        string lower = input.ToLower();
+
+        foreach (string word in bannedWords)
+        {
+            // Use Regex with word boundaries (\b) to avoid matching substrings
+            string pattern = $@"\b{Regex.Escape(word)}\b";
+            if (Regex.IsMatch(lower, pattern))
+                return true;
+        }
+
+        return false;
+    }*/
 }

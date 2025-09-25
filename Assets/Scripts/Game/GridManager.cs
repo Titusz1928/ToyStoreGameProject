@@ -167,12 +167,16 @@ public class GridManager : MonoBehaviour
                     Debug.Log("New high score saved: " + score);
                     AudioManager.Instance.PlaySoundEffect(highscoreSound);
 
-                    _ = FirestoreScoreManager.Instance.SaveScore(score, gameCode);
+                    _ = FirestoreScoreManager.Instance.SaveScoreGeneric(score, gameCode, false);
+                    // _ = FirestoreScoreManager.Instance.SaveWeeklyScore(score, gameCode);
                 }
                 else{
                     Debug.Log("No new high score: " + score);
                     AudioManager.Instance.PlaySoundEffect(gameOverSound);
                 }
+
+                //_ = FirestoreScoreManager.Instance.SaveScore(score, gameCode);
+                _ = FirestoreScoreManager.Instance.SaveScoreGeneric(score, gameCode, true);
 
 
 

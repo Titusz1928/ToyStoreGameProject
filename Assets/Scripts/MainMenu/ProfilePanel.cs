@@ -146,6 +146,13 @@ public class ProfilePanel : MonoBehaviour
             return;
         }
 
+        if (ProfanityManager.ContainsProfanity(input, "hun"))
+        {
+            ShowWarning("username_inappropriate");
+            usernameInput.text = string.Empty;
+            return;
+        }
+
         Debug.Log($"Username set to: {input}");
 
         PlayerPrefs.SetString(PlayerPrefsUsernameKey, input);

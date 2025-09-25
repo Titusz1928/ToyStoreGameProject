@@ -168,7 +168,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b37cd264309bf5748894761c2f07ebc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: globalhighscorestext
+  key: User
 --- !u!1 &2839325094788668169
 GameObject:
   m_ObjectHideFlags: 0
@@ -288,6 +288,7 @@ GameObject:
   - component: {fileID: 1677338118814887391}
   - component: {fileID: 7404434695399792104}
   - component: {fileID: 2719650315529075939}
+  - component: {fileID: 2070402358906437511}
   m_Layer: 5
   m_Name: ScoreText
   m_TagString: Untagged
@@ -433,6 +434,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &2070402358906437511
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2840529843959105497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b37cd264309bf5748894761c2f07ebc1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: Score
 --- !u!1 &3087315843633846774
 GameObject:
   m_ObjectHideFlags: 0
@@ -445,6 +459,7 @@ GameObject:
   - component: {fileID: 170395941889114912}
   - component: {fileID: 3447028253500433651}
   - component: {fileID: 4601749204128221686}
+  - component: {fileID: 4347592231677747356}
   m_Layer: 5
   m_Name: TimestampText
   m_TagString: Untagged
@@ -588,6 +603,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &4347592231677747356
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3087315843633846774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b37cd264309bf5748894761c2f07ebc1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: Time
 --- !u!1 &4694446717216442039
 GameObject:
   m_ObjectHideFlags: 0
@@ -736,7 +764,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b37cd264309bf5748894761c2f07ebc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: username
+  key: Region
 --- !u!114 &1800540864509078189
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -925,4 +953,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b37cd264309bf5748894761c2f07ebc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: 
+  key: Pos

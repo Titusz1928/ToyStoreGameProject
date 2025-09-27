@@ -2,12 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using System.IO;
 
 public class ProfilePanel : MonoBehaviour
 {
     [Header("UI References")]
     public TMP_Dropdown regionDropdown;
     public TMP_InputField usernameInput;
+    public TMP_InputField regionInput;
     public TextMeshProUGUI warningText;
 
     public GameObject secretSection;
@@ -17,20 +20,51 @@ public class ProfilePanel : MonoBehaviour
     private const string PlayerPrefsRegionKey = "SelectedRegionCode";
     private const string PlayerPrefsUsernameKey = "Username";
 
-    // Codes (stable keys, not shown in UI)
-    private readonly string[] regionCodes =
+
+    [System.Serializable]
+    public class RegionCodeList
     {
-        "R_hungary",
-        "R_europe",
-        "R_asia",
-        "R_africa",
-        "R_namerica",
-        "R_samerica",
-        "R_australia"
-    };
+        public string[] codes;
+    }
+
+
+    // Codes (stable keys, not shown in UI)
+    private string[] regionCodes;
+
+    private List<RegionOption> allRegionOptions = new List<RegionOption>();
+    private List<RegionOption> currentRegionOptions = new List<RegionOption>();
+
+    private class RegionOption
+    {
+        public string Code;
+        public string Label;
+
+        public RegionOption(string code, string label)
+        {
+            Code = code;
+            Label = label;
+        }
+    }
+
+    private void LoadRegionCodes()
+    {
+        TextAsset jsonFile = Resources.Load<TextAsset>("Other/regioncodes");
+        if (jsonFile != null)
+        {
+            RegionCodeList loaded = JsonUtility.FromJson<RegionCodeList>("{\"codes\":" + jsonFile.text + "}");
+            regionCodes = loaded.codes;
+        }
+        else
+        {
+            Debug.LogError("Region codes file not found in Resources!");
+            regionCodes = new string[] { }; // fallback to empty
+        }
+    }
+
 
     private void OnEnable()
     {
+        LoadRegionCodes();
         PopulateDropdown();
 
         if (regionDropdown != null)
@@ -42,9 +76,24 @@ public class ProfilePanel : MonoBehaviour
             int index = System.Array.IndexOf(regionCodes, savedCode);
             if (index >= 0)
             {
-                regionDropdown.value = index;
+                regionDropdown.SetValueWithoutNotify(index + 1); // +1 because dummy is at 0
                 regionDropdown.RefreshShownValue();
+
+                // Update placeholder to show localized region
+                if (regionInput != null)
+                {
+                    regionInput.text = string.Empty;
+                    var placeholderText = regionInput.placeholder as TextMeshProUGUI;
+                    if (placeholderText != null)
+                        placeholderText.text = LocalizationManager.Instance.GetLocalizedValue(savedCode);
+                }
             }
+        }
+
+        if (regionInput != null)
+        {
+            regionInput.text = "";
+            regionInput.onValueChanged.AddListener(OnRegionInputChanged);
         }
 
         if (usernameInput != null)
@@ -70,39 +119,140 @@ public class ProfilePanel : MonoBehaviour
 
         if (usernameInput != null)
             usernameInput.onEndEdit.RemoveListener(OnUsernameEntered);
+
+        if (regionInput != null)
+        {
+            regionInput.onValueChanged.RemoveListener(OnRegionInputChanged);
+        }
     }
 
     private void PopulateDropdown()
     {
         if (regionDropdown == null)
         {
-            Debug.LogError("Region dropdown is not assigned in ProfilePanel!");
+            Debug.LogError("Region dropdown is not assigned!");
             return;
         }
 
         regionDropdown.ClearOptions();
+        allRegionOptions.Clear();
 
-        // Convert codes to localized labels
-        List<string> options = new List<string>();
         foreach (string code in regionCodes)
         {
-            options.Add(LocalizationManager.Instance.GetLocalizedValue(code));
+            string label = LocalizationManager.Instance.GetLocalizedValue(code);
+            allRegionOptions.Add(new RegionOption(code, label));
         }
 
-        regionDropdown.AddOptions(options);
+        // Add dummy option at the top
+        List<string> labels = new List<string> { LocalizationManager.Instance.GetLocalizedValue("regionhelpertext") };
+        labels.AddRange(allRegionOptions.ConvertAll(opt => opt.Label));
+
+        currentRegionOptions = new List<RegionOption>(allRegionOptions);
+        regionDropdown.AddOptions(labels);
+
+        // Select dummy by default
+        regionDropdown.SetValueWithoutNotify(0);
+        regionDropdown.RefreshShownValue();
     }
 
     private void OnRegionChanged(int index)
     {
-        if (index < 0 || index >= regionCodes.Length) return;
+        if (index == 0) return; // dummy selected, do nothing
 
-        string selectedCode = regionCodes[index];
-        string selectedLabel = regionDropdown.options[index].text;
+        int realIndex = index - 1; // adjust for dummy
+        if (realIndex < 0 || realIndex >= currentRegionOptions.Count) return;
 
-        Debug.Log($"Region changed to: {selectedLabel} (code: {selectedCode})");
+        RegionOption selected = currentRegionOptions[realIndex];
+        Debug.Log($"Region changed to: {selected.Label} (code: {selected.Code})");
 
-        PlayerPrefs.SetString(PlayerPrefsRegionKey, selectedCode);
+        // Save selected code
+        PlayerPrefs.SetString(PlayerPrefsRegionKey, selected.Code);
         PlayerPrefs.Save();
+
+        // Temporarily remove listener to prevent reopening dropdown
+        if (regionInput != null)
+        {
+            regionInput.onValueChanged.RemoveListener(OnRegionInputChanged);
+
+            // Clear the input field and update placeholder
+            regionInput.text = string.Empty;
+            string localizedLabel = LocalizationManager.Instance.GetLocalizedValue(selected.Code);
+            var placeholderText = regionInput.placeholder as TextMeshProUGUI;
+            if (placeholderText != null)
+                placeholderText.text = localizedLabel;
+
+            // Re-add listener
+            regionInput.onValueChanged.AddListener(OnRegionInputChanged);
+        }
+
+        // Hide the dropdown menu / scrollview
+        regionDropdown.Hide();
+    }
+
+    private void OnRegionInputChanged(string input)
+    {
+        // Filter options
+        currentRegionOptions = string.IsNullOrWhiteSpace(input)
+            ? new List<RegionOption>(allRegionOptions)
+            : allRegionOptions.FindAll(opt => opt.Label.ToLower().Contains(input.ToLower()));
+
+        regionDropdown.Hide();
+        regionDropdown.ClearOptions();
+
+        if (currentRegionOptions.Count > 0)
+        {
+            // Build labels list including dummy at top
+            List<string> labels = new List<string> { LocalizationManager.Instance.GetLocalizedValue("regionhelpertext") };
+            labels.AddRange(currentRegionOptions.ConvertAll(opt => opt.Label));
+
+            regionDropdown.AddOptions(labels);
+
+            // Reset selection to dummy so first real item is clickable
+            regionDropdown.SetValueWithoutNotify(0);
+            regionDropdown.RefreshShownValue();
+
+            // Force layout rebuild
+            StartCoroutine(ForceDropdownLayoutRefresh());
+        }
+
+        // Refocus input after layout rebuild
+        StartCoroutine(RefocusInputNextFrame());
+
+
+    }
+
+    private IEnumerator ForceDropdownLayoutRefresh()
+    {
+        yield return null; // Wait one frame
+
+        RectTransform dropdownTemplate = regionDropdown.template;
+        if (dropdownTemplate != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(dropdownTemplate);
+
+            ScrollRect scrollRect = dropdownTemplate.GetComponentInChildren<ScrollRect>();
+            if (scrollRect != null)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.content);
+                scrollRect.verticalNormalizedPosition = 1f; // scroll to top
+            }
+        }
+
+        yield return null; // Wait another frame
+
+        regionDropdown.Show();
+    }
+
+    private IEnumerator RefocusInputNextFrame()
+    {
+        // Wait two frames to ensure dropdown popup is fully created
+        yield return null;
+        yield return null;
+
+        regionInput.ActivateInputField();
+        regionInput.caretPosition = regionInput.text.Length;
+        regionInput.selectionAnchorPosition = regionInput.caretPosition;
+        regionInput.selectionFocusPosition = regionInput.caretPosition;
     }
 
     private void OnUsernameEntered(string input)

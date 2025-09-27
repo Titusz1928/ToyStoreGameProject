@@ -137,7 +137,7 @@ public class FirestoreScoreManager : MonoBehaviour
             {
                 userId = FirebaseInit.User.UserId,
                 username = PlayerPrefs.GetString("Username", "Guest"),
-                region = PlayerPrefs.GetString("SelectedRegionCode", "R_hungary"),
+                region = PlayerPrefs.GetString("SelectedRegionCode", "R_earth"),
                 score = score,
                 timestamp = FieldValue.ServerTimestamp
             };

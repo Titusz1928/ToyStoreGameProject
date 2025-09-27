@@ -1,4 +1,5 @@
 using Firebase.Firestore;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ public class GlobalHighScoresPanel : MonoBehaviour
     public Transform contentParent;         // ScrollView Content (where rows go)
     public GameObject headerPrefab;         // prefab for column names
     public GameObject rowPrefab;            // prefab for score rows
-    public GameObject imageRowPrefan;
+    public GameObject imageRowPrefab;
 
     public GameObject loadingText;
 
@@ -34,7 +35,15 @@ public class GlobalHighScoresPanel : MonoBehaviour
     public class ScoreRow : MonoBehaviour
     {
         public bool IsWeekly;
+
+        // Store the region text so it can be reassigned when the row is reactivated
+        public string RegionText;
+
+        // Reference to the TMP object for convenience
+        public TextMeshProUGUI RegionTMP;
     }
+
+
 
     private void Awake()
     {
@@ -98,12 +107,18 @@ public class GlobalHighScoresPanel : MonoBehaviour
 
                 GameObject row;
 
-                // Choose prefab for top 3
+                if (rank <= 3)
+                    row = Instantiate(imageRowPrefab, parent);
+                else
+                    row = Instantiate(rowPrefab, parent);
+
+                // Add ScoreRow and save weekly flag
+                var scoreRow = row.AddComponent<ScoreRow>();
+                scoreRow.IsWeekly = isWeekly;
+
+                // Medal image for top 3
                 if (rank <= 3)
                 {
-                    row = Instantiate(imageRowPrefan, parent);
-
-                    // Medal image
                     Image medalImage = row.transform.GetChild(0).GetComponentInChildren<Image>();
                     if (medalImage != null)
                     {
@@ -114,30 +129,68 @@ public class GlobalHighScoresPanel : MonoBehaviour
                             case 3: medalImage.sprite = thirdPlaceSprite; break;
                         }
                     }
-
-                    // Fill texts
-                    TextMeshProUGUI[] rowTexts = row.GetComponentsInChildren<TextMeshProUGUI>();
-                    if (rowTexts.Length >= 4)
-                    {
-                        rowTexts[0].text = LocalizationManager.Instance.GetLocalizedValue(region);
-                        rowTexts[1].text = username;
-                        rowTexts[2].text = score.ToString();
-                        rowTexts[3].text = timeStr;
-                    }
                 }
-                else
-                {
-                    row = Instantiate(rowPrefab, parent);
 
-                    TextMeshProUGUI[] rowTexts = row.GetComponentsInChildren<TextMeshProUGUI>();
-                    if (rowTexts.Length >= 5)
+                // Region image & text
+                Transform regionContainer = row.transform.GetChild(1);
+                Image regionImage = regionContainer.GetComponentInChildren<Image>();
+                TextMeshProUGUI regionText = regionContainer.GetComponentInChildren<TextMeshProUGUI>();
+
+                if (regionImage != null)
+                {
+                    regionImage.sprite = LoadRegionSprite(region);
+                    regionImage.gameObject.SetActive(true);
+
+                    // Add a Button component if not already present
+                    Button btn = regionImage.GetComponent<Button>();
+                    if (btn == null)
+                        btn = regionImage.gameObject.AddComponent<Button>();
+
+                    // Capture the ScoreRow for the lambda
+                    ScoreRow capturedRow = scoreRow;
+                    btn.onClick.RemoveAllListeners();
+                    btn.onClick.AddListener(() =>
                     {
-                        rowTexts[0].text = rank.ToString();
-                        rowTexts[1].text = LocalizationManager.Instance.GetLocalizedValue(region);
-                        rowTexts[2].text = username;
-                        rowTexts[3].text = score.ToString();
-                        rowTexts[4].text = timeStr;
-                    }
+                        // Show the text briefly
+                        StartCoroutine(ShowRegionTextTemporarily(capturedRow));
+                    });
+                }
+
+                if(regionText != null)
+                {
+                    string localizedRegion = LocalizationManager.Instance.GetLocalizedValue(region);
+
+                    // Set TMP text to empty initially
+                    regionText.text = LocalizationManager.Instance.GetLocalizedValue("empty");
+
+                    // Add / set LocalizedText component so the key can update dynamically
+                    LocalizedText localizedText = regionText.GetComponent<LocalizedText>();
+                    if (localizedText == null)
+                        localizedText = regionText.gameObject.AddComponent<LocalizedText>();
+
+                    localizedText.key = "empty"; // ensures TMP sees a valid localization key
+
+                    regionText.raycastTarget = false; // clicks pass through
+
+                    // Save TMP reference and actual localized text for later
+                    scoreRow.RegionTMP = regionText;
+                    scoreRow.RegionText = localizedRegion;
+                }
+
+                // Fill other texts
+                TextMeshProUGUI[] rowTexts = row.GetComponentsInChildren<TextMeshProUGUI>();
+                if (rank <= 3 && rowTexts.Length >= 4)
+                {
+                    rowTexts[1].text = username;
+                    rowTexts[2].text = score.ToString();
+                    rowTexts[3].text = timeStr;
+                }
+                else if (rowTexts.Length >= 5)
+                {
+                    rowTexts[0].text = rank.ToString();
+                    rowTexts[2].text = username;
+                    rowTexts[3].text = score.ToString();
+                    rowTexts[4].text = timeStr;
                 }
 
                 // Highlight current player
@@ -148,10 +201,7 @@ public class GlobalHighScoresPanel : MonoBehaviour
                         bgImage.color = new Color(0.7f, 1f, 0.7f, 1f);
                 }
 
-                // Mark row as weekly or overall
-                var scoreRow = row.AddComponent<ScoreRow>();
-                scoreRow.IsWeekly = isWeekly;
-
+                // Add to appropriate list
                 if (isWeekly)
                     weeklyRows.Add(row);
                 else
@@ -228,6 +278,13 @@ public class GlobalHighScoresPanel : MonoBehaviour
             {
                 row.SetActive(true);
                 hasRows = true;
+
+                // Reassign the region text
+/*                var scoreRow = row.GetComponent<ScoreRow>();
+                if (scoreRow != null && scoreRow.RegionTMP != null)
+                {
+                    scoreRow.RegionTMP.text = scoreRow.RegionText;
+                }*/
             }
         }
 
@@ -259,6 +316,13 @@ public class GlobalHighScoresPanel : MonoBehaviour
             {
                 row.SetActive(true);
                 hasRows = true;
+
+                // Reassign the region text
+/*                var scoreRow = row.GetComponent<ScoreRow>();
+                if (scoreRow != null && scoreRow.RegionTMP != null)
+                {
+                    scoreRow.RegionTMP.text = scoreRow.RegionText;
+                }*/
             }
         }
 
@@ -276,4 +340,53 @@ public class GlobalHighScoresPanel : MonoBehaviour
         if (contentRoot != null)
             contentRoot.SetActive(false);
     }
+
+    private Sprite LoadRegionSprite(string regionCode)
+    {
+        Sprite sprite = Resources.Load<Sprite>($"Sprites/Regions/{regionCode}");
+        if (sprite == null)
+            sprite = Resources.Load<Sprite>("Sprites/notexture");
+        return sprite;
+    }
+
+    private IEnumerator ShowRegionTextTemporarily(ScoreRow row)
+    {
+        if (row.RegionTMP == null) yield break;
+
+        // Get the image component (assumes it is a sibling or parent of the TMP)
+        Image regionImage = row.RegionTMP.transform.parent.GetComponentInChildren<Image>();
+        if (regionImage == null) yield break;
+
+        // Show text
+        row.RegionTMP.text = row.RegionText;
+
+        // Fade out the image
+        float duration = 0.3f;
+        for (float t = 0; t < duration; t += Time.deltaTime)
+        {
+            float alpha = 1 - t / duration;
+            regionImage.color = new Color(1f, 1f, 1f, alpha);
+            yield return null;
+        }
+        regionImage.color = new Color(1f, 1f, 1f, 0f);
+
+        // Wait while text is visible
+        yield return new WaitForSeconds(2f);
+
+        // Hide text
+        row.RegionTMP.text = LocalizationManager.Instance.GetLocalizedValue("empty");
+
+        // Fade image back in
+        for (float t = 0; t < duration; t += Time.deltaTime)
+        {
+            float alpha = t / duration;
+            regionImage.color = new Color(1f, 1f, 1f, alpha);
+            yield return null;
+        }
+        regionImage.color = new Color(1f, 1f, 1f, 1f);
+    }
+
+
+
+
 }

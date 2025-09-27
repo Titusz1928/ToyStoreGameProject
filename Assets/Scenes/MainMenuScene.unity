@@ -27094,8 +27094,8 @@ MonoBehaviour:
   contentRoot: {fileID: 9223056429756585604}
   contentParent: {fileID: 6606627822804021064}
   headerPrefab: {fileID: 2839325094788668169, guid: a37531a1acf8eb34b9a9f6aada17170d, type: 3}
-  rowPrefab: {fileID: 6403776444471268591, guid: ba63394904e8b9644912f62ba90f74ea, type: 3}
-  imageRowPrefan: {fileID: 8956017267134563403, guid: 8519c6037b0533245805b4099f0cd955, type: 3}
+  rowPrefab: {fileID: 6527258933542296038, guid: 2fd34e87f18d25e4684a57f7b20b8672, type: 3}
+  imageRowPrefab: {fileID: 9076890706209541366, guid: a8dbe797f557bed448f665eaf3a8f161, type: 3}
   loadingText: {fileID: 3211408353604431797}
   firstPlaceSprite: {fileID: 21300000, guid: 4fd68c78f3ac90b47b7fce3e15621114, type: 3}
   secondPlaceSprite: {fileID: 21300000, guid: 2934ed55353052149956768dcf26918d, type: 3}
@@ -28477,7 +28477,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!222 &3366138334725863972
 CanvasRenderer:
   m_ObjectHideFlags: 0

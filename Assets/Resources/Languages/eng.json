@@ -46,6 +46,7 @@
   "weeklytext": "Weekly",
   "username_too_long": "Maximum 12 characters",
   "username_inappropriate": "Innappropriate username",
+  "username_check_failed": "Could not verify username due to connection issues",
   "no_any_rows": "No any records",
   "regionhelpertext": "Select a region...",
 

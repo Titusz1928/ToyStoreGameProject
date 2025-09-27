@@ -299,6 +299,12 @@ public class ProfilePanel : MonoBehaviour
             return;
         }
 
+        if (!ProfanityManager.IsLoaded())
+        {
+            ShowWarning("username_check_failed");
+            return;
+        }
+
         if (ProfanityManager.ContainsProfanity(input))
         {
             ShowWarning("username_inappropriate");

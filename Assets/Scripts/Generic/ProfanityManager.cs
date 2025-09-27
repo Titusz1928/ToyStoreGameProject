@@ -13,43 +13,52 @@ public static class ProfanityManager
     /// </summary>
     public static async Task LoadList()
     {
-        if (isLoaded)
-            return; // Already loaded
-
         bannedWords = new HashSet<string>();
+        isLoaded = false;
 
-        var docRef = FirebaseInit.Db.Collection("profanity").Document("eng"); // single combined list
-        var snapshot = await docRef.GetSnapshotAsync();
-
-        if (!snapshot.Exists)
+        try
         {
-            Debug.LogError("Profanity document not found in Firestore!");
-            return;
+            var docRef = FirebaseInit.Db.Collection("profanity").Document("eng"); // single combined list
+            var snapshot = await docRef.GetSnapshotAsync();
+
+            if (!snapshot.Exists)
+            {
+                Debug.LogError("Profanity document not found in Firestore!");
+                return;
+            }
+
+            List<string> words = snapshot.GetValue<List<string>>("words");
+
+            foreach (var word in words)
+            {
+                string w = word.Trim().ToLower();
+                if (!string.IsNullOrEmpty(w))
+                    bannedWords.Add(w);
+            }
+
+            isLoaded = true;
+            Debug.Log($"Loaded {bannedWords.Count} banned words");
         }
-
-        List<string> words = snapshot.GetValue<List<string>>("words");
-
-        foreach (var word in words)
+        catch (System.Exception e)
         {
-            string w = word.Trim().ToLower();
-            if (!string.IsNullOrEmpty(w))
-                bannedWords.Add(w);
+            Debug.LogError($"Failed to load profanity list: {e.Message}");
         }
-
-        isLoaded = true;
-        Debug.Log($"Loaded {bannedWords.Count} banned words");
     }
 
     /// <summary>
     /// Checks if the given input contains profanity.
+    /// Returns false if the list couldn't load (you might show a warning instead).
     /// </summary>
     public static bool ContainsProfanity(string input)
     {
-        if (!isLoaded || bannedWords == null)
+        if (!isLoaded)
         {
-            Debug.LogWarning("ProfanityManager used before loading list. Call LoadList() first!");
+            Debug.LogWarning("Profanity list not loaded. Cannot check input!");
             return false;
         }
+
+        if (string.IsNullOrWhiteSpace(input))
+            return false;
 
         string lower = input.ToLower();
         foreach (string word in bannedWords)
@@ -61,4 +70,9 @@ public static class ProfanityManager
 
         return false;
     }
+
+    /// <summary>
+    /// Returns whether the profanity list is ready to use.
+    /// </summary>
+    public static bool IsLoaded() => isLoaded;
 }

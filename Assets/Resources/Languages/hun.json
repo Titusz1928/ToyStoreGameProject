@@ -46,6 +46,7 @@
   "weeklytext": "Heti",
   "username_too_long": "Maximum 12 karakter",
   "username_inappropriate": "Sértő felhasználónév",
+  "username_check_failed": "Nem sikerült ellenőrizni a felhasználónevet kapcsolatproblémák miatt",
   "no_any_rows": "Nincs egy rekord sem",
   "regionhelpertext": "Válassz egy régiót...",
 

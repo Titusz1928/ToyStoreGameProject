@@ -58,7 +58,7 @@ public class WindowController : MonoBehaviour
         string currentUsername = PlayerPrefs.GetString("Username", "Guest");
         if (ProfanityManager.ContainsProfanity(currentUsername))
         {
-            Debug.Log($"❌ Existing username '{currentUsername}' contains profanity. Resetting to default.");
+            Debug.Log($"Existing username '{currentUsername}' contains profanity. Resetting to default.");
             PlayerPrefs.SetString("Username", "Username"); // or "Guest"
             PlayerPrefs.Save();
         }

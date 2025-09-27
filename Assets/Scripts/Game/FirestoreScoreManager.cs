@@ -1,8 +1,9 @@
 ﻿using Firebase.Firestore;
-using UnityEngine;
-using System.Threading.Tasks;
 using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Windows;
 
 public class FirestoreScoreManager : MonoBehaviour
 {
@@ -131,6 +132,7 @@ public class FirestoreScoreManager : MonoBehaviour
                 await userDoc.Reference.DeleteAsync();
                 Debug.Log($"[{collectionName}] Replaced old score {oldScore} for user {FirebaseInit.User.UserId}");
             }
+
 
             // 7. Add new score
             var scoreData = new

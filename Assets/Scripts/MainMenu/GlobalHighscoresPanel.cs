@@ -345,7 +345,7 @@ public class GlobalHighScoresPanel : MonoBehaviour
     {
         Sprite sprite = Resources.Load<Sprite>($"Sprites/Regions/{regionCode}");
         if (sprite == null)
-            sprite = Resources.Load<Sprite>("Sprites/notexture");
+            sprite = Resources.Load<Sprite>("Sprites/Regions/R_earth");
         return sprite;
     }
 

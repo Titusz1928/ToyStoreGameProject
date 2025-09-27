@@ -1,8 +1,9 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using Tabmenu.UI;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Threading.Tasks;
 
 
 public class WindowController : MonoBehaviour
@@ -45,6 +46,22 @@ public class WindowController : MonoBehaviour
         gameAreaSlider.onValueChanged.AddListener(NewGameManager.Instance.SetGameArea);
         cardNumberSlider.onValueChanged.AddListener(NewGameManager.Instance.SetCardNumber);
 
+        _ = InitializeProfanityCheck();
+
+    }
+
+    private async Task InitializeProfanityCheck()
+    {
+        await ProfanityManager.LoadList();
+
+        // Check current username in PlayerPrefs
+        string currentUsername = PlayerPrefs.GetString("Username", "Guest");
+        if (ProfanityManager.ContainsProfanity(currentUsername))
+        {
+            Debug.Log($"❌ Existing username '{currentUsername}' contains profanity. Resetting to default.");
+            PlayerPrefs.SetString("Username", "Username"); // or "Guest"
+            PlayerPrefs.Save();
+        }
     }
 
     public void OpenSettingsPanel()

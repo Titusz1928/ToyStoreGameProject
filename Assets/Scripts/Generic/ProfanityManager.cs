@@ -1,76 +1,64 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
-//using System.Text.RegularExpressions;
+using Firebase.Firestore;
 
 public static class ProfanityManager
 {
     private static HashSet<string> bannedWords;
-    private static string currentLanguage;
+    private static bool isLoaded = false;
 
-    // Load the correct list based on language code ("eng", "hun", etc.)
-    public static void LoadList(string languageCode = "eng")
+    /// <summary>
+    /// Loads the combined banned word list from Firestore.
+    /// </summary>
+    public static async Task LoadList()
     {
-        if (bannedWords != null && currentLanguage == languageCode)
-            return; // Already loaded for this language
+        if (isLoaded)
+            return; // Already loaded
 
-        currentLanguage = languageCode;
         bannedWords = new HashSet<string>();
 
-        string path = $"Profanity/{languageCode}_profanity";
-        TextAsset textFile = Resources.Load<TextAsset>(path);
+        var docRef = FirebaseInit.Db.Collection("profanity").Document("eng"); // single combined list
+        var snapshot = await docRef.GetSnapshotAsync();
 
-        if (textFile == null)
+        if (!snapshot.Exists)
         {
-            Debug.LogError($"Profanity file not found at Resources/{path}.txt");
+            Debug.LogError("Profanity document not found in Firestore!");
             return;
         }
 
-        string[] lines = textFile.text.Split('\n');
-        foreach (var line in lines)
+        List<string> words = snapshot.GetValue<List<string>>("words");
+
+        foreach (var word in words)
         {
-            string word = line.Trim().ToLower();
-            if (!string.IsNullOrEmpty(word))
-                bannedWords.Add(word);
+            string w = word.Trim().ToLower();
+            if (!string.IsNullOrEmpty(w))
+                bannedWords.Add(w);
         }
 
-        Debug.Log($"Loaded {bannedWords.Count} banned words for language: {languageCode}");
+        isLoaded = true;
+        Debug.Log($"Loaded {bannedWords.Count} banned words");
     }
 
-    public static bool ContainsProfanity(string input, string languageCode = "eng")
+    /// <summary>
+    /// Checks if the given input contains profanity.
+    /// </summary>
+    public static bool ContainsProfanity(string input)
     {
-        LoadList(languageCode);
-
-        if (bannedWords == null || bannedWords.Count == 0)
+        if (!isLoaded || bannedWords == null)
+        {
+            Debug.LogWarning("ProfanityManager used before loading list. Call LoadList() first!");
             return false;
+        }
 
         string lower = input.ToLower();
         foreach (string word in bannedWords)
         {
+            // stricter check: matches even if the word is inside another word
             if (lower.Contains(word))
                 return true;
         }
 
         return false;
     }
-
-
-    /*public static bool ContainsProfanity(string input, string languageCode = "eng")
-    {
-        LoadList(languageCode);
-
-        if (bannedWords == null || bannedWords.Count == 0)
-            return false;
-
-        string lower = input.ToLower();
-
-        foreach (string word in bannedWords)
-        {
-            // Use Regex with word boundaries (\b) to avoid matching substrings
-            string pattern = $@"\b{Regex.Escape(word)}\b";
-            if (Regex.IsMatch(lower, pattern))
-                return true;
-        }
-
-        return false;
-    }*/
 }

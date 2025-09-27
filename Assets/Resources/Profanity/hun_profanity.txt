@@ -6,6 +6,7 @@ barmok
 barmokat
 barmot
 barom
+basz
 baszik
 baszodj
 baszódj
@@ -76,6 +77,7 @@ pöcs
 pöcsök
 pöcsöket
 pöcsöt
+prosti
 punci
 puncik
 segg
@@ -96,5 +98,6 @@ szarik
 szarok
 szarokat
 szart
+szex
 halál
 utál

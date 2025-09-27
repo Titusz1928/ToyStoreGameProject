@@ -12,6 +12,7 @@ public class ProfilePanel : MonoBehaviour
     public TMP_InputField usernameInput;
     public TMP_InputField regionInput;
     public TextMeshProUGUI warningText;
+    public Image regionImage;
 
     public GameObject secretSection;
     private const string showSecretCode = "SHOWME6H9i2";
@@ -86,6 +87,10 @@ public class ProfilePanel : MonoBehaviour
                     var placeholderText = regionInput.placeholder as TextMeshProUGUI;
                     if (placeholderText != null)
                         placeholderText.text = LocalizationManager.Instance.GetLocalizedValue(savedCode);
+                }
+                if (regionImage != null)
+                {
+                    regionImage.sprite = LoadRegionSprite(savedCode);
                 }
             }
         }
@@ -183,6 +188,11 @@ public class ProfilePanel : MonoBehaviour
 
             // Re-add listener
             regionInput.onValueChanged.AddListener(OnRegionInputChanged);
+        }
+
+        if (regionImage != null)
+        {
+            regionImage.sprite = LoadRegionSprite(selected.Code);
         }
 
         // Hide the dropdown menu / scrollview
@@ -289,14 +299,7 @@ public class ProfilePanel : MonoBehaviour
             return;
         }
 
-        if (ProfanityManager.ContainsProfanity(input, "eng"))
-        {
-            ShowWarning("username_inappropriate");
-            usernameInput.text = string.Empty;
-            return;
-        }
-
-        if (ProfanityManager.ContainsProfanity(input, "hun"))
+        if (ProfanityManager.ContainsProfanity(input))
         {
             ShowWarning("username_inappropriate");
             usernameInput.text = string.Empty;
@@ -335,5 +338,13 @@ public class ProfilePanel : MonoBehaviour
         yield return new WaitForSeconds(delay);
         if (warningText != null)
             warningText.text = "";
+    }
+
+    private Sprite LoadRegionSprite(string regionCode)
+    {
+        Sprite sprite = Resources.Load<Sprite>($"Sprites/Regions/{regionCode}");
+        if (sprite == null)
+            sprite = Resources.Load<Sprite>("Sprites/Regions/R_earth");
+        return sprite;
     }
 }
